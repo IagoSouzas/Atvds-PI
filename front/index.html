@@ -1,632 +1,782 @@
-
-//html
-	<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TechStore — Produtos</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini API REST — Filmes</title>
 
-  <!-- Google Fonts: Syne para títulos + Karla para corpo -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Karla:wght@400;500;600&display=swap" rel="stylesheet" />
+    <!-- Google Fonts: Syne para títulos + Karla para corpo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Karla:wght@400;500;600&display=swap"
+        rel="stylesheet" />
 
-  <style>
-    /* ============================================================
+    <style>
+        /* ============================================================
        VARIÁVEIS GLOBAIS
        Centralizamos as cores e espaços aqui para fácil manutenção.
        ============================================================ */
-    :root {
-      --bg:          #0d0d0d;
-      --surface:     #161616;
-      --surface-2:   #1f1f1f;
-      --border:      #2a2a2a;
-      --accent:      #e8ff47;
-      --accent-dim:  #c8df30;
-      --text:        #f0f0f0;
-      --text-muted:  #888;
-      --text-faint:  #444;
-      --danger:      #ff4f4f;
+        :root {
+            --bg: #0d0d0d;
+            --surface: #161616;
+            --surface-2: #1f1f1f;
+            --border: #2a2a2a;
+            --accent: #e8ff47;
+            --accent-dim: #c8df30;
+            --text: #f0f0f0;
+            --text-muted: #888;
+            --text-faint: #444;
+            --danger: #ff4f4f;
 
-      --radius:      12px;
-      --gap:         24px;
-    }
+            --radius: 12px;
+            --gap: 24px;
+        }
 
-    /* ============================================================
+        /* ============================================================
        RESET + BASE
        ============================================================ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Karla', sans-serif;
-      font-size: 16px;
-      line-height: 1.6;
-      min-height: 100vh;
-    }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Karla', sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
 
-    /* ============================================================
+        /* ============================================================
        HEADER
        ============================================================ */
-    header {
-      border-bottom: 1px solid var(--border);
-      padding: 20px 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      background: rgba(13,13,13,0.9);
-      backdrop-filter: blur(12px);
-      z-index: 10;
-    }
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: rgba(13, 13, 13, 0.9);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+        }
 
-    .logo {
-      font-family: 'Syne', sans-serif;
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
 
-    .logo span {
-      color: var(--accent);
-    }
+        .logo span {
+            color: var(--accent);
+        }
 
-    /* Badge de status da API — muda de cor via JS */
-    .api-badge {
-      font-size: 12px;
-      font-weight: 600;
-      padding: 5px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.3s ease;
-    }
+        /* Badge de status da API — muda de cor via JS */
+        .api-badge {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
 
-    .api-badge .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--text-faint);
-      transition: background 0.3s;
-    }
+        .api-badge .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--text-faint);
+            transition: background 0.3s;
+        }
 
-    .api-badge.ok  { border-color: #2a3a1a; color: #a8d060; }
-    .api-badge.ok  .dot { background: #a8d060; animation: pulse 2s infinite; }
-    .api-badge.err { border-color: #3a1a1a; color: var(--danger); }
-    .api-badge.err .dot { background: var(--danger); }
+        .api-badge.ok {
+            border-color: #2a3a1a;
+            color: #a8d060;
+        }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
-    }
+        .api-badge.ok .dot {
+            background: #a8d060;
+            animation: pulse 2s infinite;
+        }
 
-    /* ============================================================
+        .api-badge.err {
+            border-color: #3a1a1a;
+            color: var(--danger);
+        }
+
+        .api-badge.err .dot {
+            background: var(--danger);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        /* ============================================================
        MAIN — área de conteúdo
        ============================================================ */
-    main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 48px 40px;
-    }
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 40px;
+        }
 
-    /* Título da seção */
-    .section-header {
-      margin-bottom: 40px;
-    }
+        /* Título da seção */
+        .section-header {
+            margin-bottom: 40px;
+        }
 
-    .section-header h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(28px, 4vw, 42px);
-      font-weight: 800;
-      letter-spacing: -1px;
-      line-height: 1.1;
-    }
+        .section-header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(28px, 4vw, 42px);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
 
-    .section-header h1 em {
-      color: var(--accent);
-      font-style: normal;
-    }
+        .section-header h1 em {
+            color: var(--accent);
+            font-style: normal;
+        }
 
-    .section-header p {
-      margin-top: 10px;
-      color: var(--text-muted);
-      font-size: 14px;
-    }
+        .section-header p {
+            margin-top: 10px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
 
-    /* Endpoint pill — mostra a URL que está sendo consumida */
-    .endpoint-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 14px;
-      font-family: monospace;
-      font-size: 13px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 14px;
-      color: var(--text-muted);
-    }
+        /* Endpoint pill — mostra a URL que está sendo consumida */
+        .endpoint-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 14px;
+            font-family: monospace;
+            font-size: 13px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 14px;
+            color: var(--text-muted);
+        }
 
-    .endpoint-pill .method {
-      background: var(--accent);
-      color: #111;
-      font-weight: 700;
-      font-size: 11px;
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-family: 'Karla', sans-serif;
-      letter-spacing: 0.5px;
-    }
+        .endpoint-pill .method {
+            background: var(--accent);
+            color: #111;
+            font-weight: 700;
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-family: 'Karla', sans-serif;
+            letter-spacing: 0.5px;
+        }
 
-    /* ============================================================
+        /* ============================================================
        GRID DE PRODUTOS
        ============================================================ */
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: var(--gap);
-    }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--gap);
+        }
 
-    /* ============================================================
+        /* ============================================================
        CARD DE PRODUTO
        ============================================================ */
-    .product-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+        .product-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
 
-      /* Animação de entrada — staggered via JS */
-      opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 0.4s ease, transform 0.4s ease,
-                  border-color 0.2s ease;
-    }
+            /* Animação de entrada — staggered via JS */
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.4s ease, transform 0.4s ease,
+                border-color 0.2s ease;
+        }
 
-    .product-card.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+        .product-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-    .product-card:hover {
-      border-color: #404040;
-    }
+        .product-card:hover {
+            border-color: #404040;
+        }
 
-    /* Imagem do produto */
-    .card-img {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      object-fit: cover;
-      display: block;
-      background: var(--surface-2);
-    }
+        /* Corpo do card */
+        .card-body {
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 6px;
+        }
 
-    /* Corpo do card */
-    .card-body {
-      padding: 18px 20px;
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      gap: 6px;
-    }
+        /* Tag de categoria */
+        .card-category {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--accent-dim);
+        }
 
-    /* Tag de categoria */
-    .card-category {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      color: var(--accent-dim);
-    }
+        /* Nome do produto */
+        .card-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--text);
+        }
 
-    /* Nome do produto */
-    .card-name {
-      font-family: 'Syne', sans-serif;
-      font-size: 17px;
-      font-weight: 700;
-      line-height: 1.3;
-      color: var(--text);
-    }
+        /* Descrição */
+        .card-description {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            flex: 1;
+        }
 
-    /* Descrição */
-    .card-description {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-      flex: 1;
-    }
+        /* Footer do card: id + preço */
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+        }
 
-    /* Footer do card: id + preço */
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid var(--border);
-    }
+        .card-id {
+            font-size: 11px;
+            color: var(--text-faint);
+            font-family: monospace;
+        }
 
-    .card-id {
-      font-size: 11px;
-      color: var(--text-faint);
-      font-family: monospace;
-    }
+        .card-price {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
 
-    .card-price {
-      font-family: 'Syne', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    /* ============================================================
+        /* ============================================================
        SKELETON — estado de carregamento
        Os skeletons simulam os cards enquanto a API responde.
        ============================================================ */
-    .skeleton-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      animation: shimmer 1.4s ease-in-out infinite;
-    }
+        .skeleton-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            animation: shimmer 1.4s ease-in-out infinite;
+        }
 
-    .skeleton-img {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      background: var(--surface-2);
-    }
+        .skeleton-img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: var(--surface-2);
+        }
 
-    .skeleton-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
-    .skeleton-line { height: 12px; border-radius: 4px; background: var(--surface-2); }
-    .skeleton-line.short { width: 40%; }
-    .skeleton-line.medium { width: 70%; }
+        .skeleton-body {
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-    @keyframes shimmer {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.5; }
-    }
+        .skeleton-line {
+            height: 12px;
+            border-radius: 4px;
+            background: var(--surface-2);
+        }
 
-    /* ============================================================
+        .skeleton-line.short {
+            width: 40%;
+        }
+
+        .skeleton-line.medium {
+            width: 70%;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* ============================================================
        ESTADO DE ERRO
        ============================================================ */
-    .error-state {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 60px 20px;
-      border: 1px dashed #3a1a1a;
-      border-radius: var(--radius);
-    }
+        .error-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            border: 1px dashed #3a1a1a;
+            border-radius: var(--radius);
+        }
 
-    .error-state .error-icon {
-      font-size: 36px;
-      margin-bottom: 12px;
-    }
+        .error-state .error-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
 
-    .error-state h2 {
-      font-family: 'Syne', sans-serif;
-      color: var(--danger);
-      margin-bottom: 8px;
-    }
+        .error-state h2 {
+            font-family: 'Syne', sans-serif;
+            color: var(--danger);
+            margin-bottom: 8px;
+        }
 
-    .error-state p {
-      color: var(--text-muted);
-      font-size: 14px;
-      max-width: 400px;
-      margin: 0 auto 20px;
-    }
+        .error-state p {
+            color: var(--text-muted);
+            font-size: 14px;
+            max-width: 400px;
+            margin: 0 auto 20px;
+        }
 
-    .error-state code {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 2px 8px;
-      font-size: 13px;
-      color: var(--danger);
-    }
+        .error-state code {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 13px;
+            color: var(--danger);
+        }
 
-    .btn-retry {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Karla', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 10px 24px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s;
-    }
+        .btn-retry {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'Karla', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
 
-    .btn-retry:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
+        .btn-retry:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
 
-    /* ============================================================
+        /* ============================================================
        CONTADOR DE RESULTADOS
        ============================================================ */
-    .results-count {
-      margin-bottom: 20px;
-      font-size: 13px;
-      color: var(--text-faint);
-    }
+        .results-count {
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: var(--text-faint);
+        }
 
-    .results-count strong {
-      color: var(--text-muted);
-    }
+        .results-count strong {
+            color: var(--text-muted);
+        }
 
-    /* ============================================================
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: #111;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Karla', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: filter 0.2s ease;
+        }
+
+        .btn:hover {
+            filter: brightness(0.92);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .favorite-form {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .favorite-form input {
+            width: 100%;
+            background: var(--surface-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Karla', sans-serif;
+            padding: 10px 12px;
+            outline: none;
+        }
+
+        .favorite-form input:focus {
+            border-color: var(--accent-dim);
+        }
+
+        .status-msg {
+            margin: 0 0 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+            min-height: 20px;
+        }
+
+        .card-actions {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .characters-panel {
+            margin-top: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: none;
+        }
+
+        .characters-panel h3 {
+            font-family: 'Syne', sans-serif;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .characters-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+        }
+
+        .characters-list li {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 13px;
+            color: var(--text-muted);
+            background: var(--surface-2);
+        }
+
+        /* ============================================================
        RESPONSIVE
        ============================================================ */
-    @media (max-width: 600px) {
-      header { padding: 16px 20px; }
-      main   { padding: 32px 20px; }
-    }
-  </style>
+        @media (max-width: 600px) {
+            header {
+                padding: 16px 20px;
+            }
+
+            main {
+                padding: 32px 20px;
+            }
+
+            .favorite-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-  <!-- ============================================================
+    <!-- ============================================================
        HEADER
        ============================================================ -->
-  <header>
-    <div class="logo">tech<span>store</span></div>
+    <header>
+        <div class="logo">Seus<span>Filmes</span></div>
 
-    <!--
+        <!--
       Badge que indica o status da API.
       Vai mudar de aparência via JS dependendo se a requisição
       funcionou ou falhou.
     -->
-    <div class="api-badge" id="apiBadge">
-      <span class="dot"></span>
-      <span id="badgeText">conectando...</span>
-    </div>
-  </header>
+        <div class="api-badge" id="apiBadge">
+            <span class="dot"></span>
+            <span id="badgeText">conectando...</span>
+        </div>
+    </header>
 
 
-  <!-- ============================================================
+    <!-- ============================================================
        CONTEÚDO PRINCIPAL
        ============================================================ -->
-  <main>
+    <main>
 
-    <div class="section-header">
-      <h1>Todos os <em>Produtos</em></h1>
-      <p>Dados consumidos em tempo real da API REST.</p>
+        <div class="section-header">
+            <h1>Mini API REST de <em>Filmes</em></h1>
+            <p>GET para listar filmes e buscar personagens, POST para adicionar favoritos.</p> 
+        </div>
 
-      <!--
-        Deixamos visível a URL exata que o JS vai chamar.
-        Isso é muito útil em aula — o aluno vê a conexão
-        entre o código e a requisição.
-      -->
-      <div class="endpoint-pill">
-        <span class="method">GET</span>
-        <span id="endpointUrl">http://localhost:8080/api/products</span>
-      </div>
-    </div>
+        <div class="toolbar">
+            <button class="btn" id="reloadBtn" type="button">Atualizar filmes</button>
+        </div>
 
-    <!-- Contador de resultados (preenchido pelo JS) -->
-    <div class="results-count" id="resultsCount" style="display:none">
-      Exibindo <strong id="productCount">0</strong> produtos
-    </div>
+        <form class="favorite-form" id="favoriteForm">
+            <input id="favNome" type="text" placeholder="Nome do filme favorito" required />
+            <input id="favAno" type="date" required />
+            <button class="btn" type="submit">Salvar</button>
+        </form>
 
-    <!-- Grid — começa vazio; o JS injeta os cards aqui -->
-    <div class="product-grid" id="productGrid">
+        <p class="status-msg" id="statusMsg"></p>
 
-      <!--
+        <!-- Contador de resultados (preenchido pelo JS) -->
+        <div class="results-count" id="resultsCount" style="display:none">
+            Exibindo <strong id="productCount">0</strong> filmes
+        </div>
+
+        <!-- Grid — começa vazio; o JS injeta os cards aqui -->
+        <div class="product-grid" id="productGrid">
+
+            <!--
         Skeletons de carregamento.
         Enquanto a requisição não voltar, o usuário vê
         esses placeholders animados no lugar dos cards reais.
       -->
-      <div class="skeleton-card">
-        <div class="skeleton-img"></div>
-        <div class="skeleton-body">
-          <div class="skeleton-line short"></div>
-          <div class="skeleton-line medium"></div>
-          <div class="skeleton-line"></div>
-        </div>
-      </div>
-      <div class="skeleton-card">
-        <div class="skeleton-img"></div>
-        <div class="skeleton-body">
-          <div class="skeleton-line short"></div>
-          <div class="skeleton-line medium"></div>
-          <div class="skeleton-line"></div>
-        </div>
-      </div>
-      <div class="skeleton-card">
-        <div class="skeleton-img"></div>
-        <div class="skeleton-body">
-          <div class="skeleton-line short"></div>
-          <div class="skeleton-line medium"></div>
-          <div class="skeleton-line"></div>
-        </div>
-      </div>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+            </div>
 
-    </div><!-- /product-grid -->
+        </div><!-- /product-grid -->
 
-  </main>
+        <section class="characters-panel" id="charactersPanel">
+            <h3 id="charactersTitle">Personagens</h3>
+            <ul class="characters-list" id="charactersList"></ul>
+        </section>
+
+    </main>
 
 
-  <!-- ============================================================
-       JAVASCRIPT — lógica de consumo da API
+    <!-- ============================================================
+             JAVASCRIPT — lógica básica da mini API
 
-       Fluxo:
-         1. Ao carregar a página, chamamos fetchProducts()
-         2. Fazemos um GET para a API com fetch()
-         3. Convertemos a resposta para JSON
-         4. Criamos os cards dinamicamente e inserimos no DOM
-         5. Se der erro, mostramos o estado de erro
+             Fluxo:
+                 1. GET /api/movie para listar filmes
+                 2. POST /api/movie para adicionar favorito
+                 3. GET externo para buscar personagens por nome
        ============================================================ -->
-  <script>
-    // URL da API Spring Boot rodando localmente.
-    // Quando fizer deploy, só precisa trocar esta constante.
-    const API_URL = 'http://localhost:8080/api/products';
+    <script>
+        // URL base da API Spring Boot (mesmo host da página).
+        const API_URL = 'http://localhost:8080/api/movie';
+        const CHARACTER_API = 'https://api.tvmaze.com/singlesearch/shows';
 
-    // Referências aos elementos que vamos manipular
-    const grid        = document.getElementById('productGrid');
-    const badge       = document.getElementById('apiBadge');
-    const badgeText   = document.getElementById('badgeText');
-    const resultsDiv  = document.getElementById('resultsCount');
-    const countSpan   = document.getElementById('productCount');
-
-
-    /**
-     * Formata um número como moeda brasileira.
-     * Ex: 1199 → "R$ 1.199,00"
-     */
-    function formatPrice(value) {
-      return value.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      });
-    }
+        // Referências aos elementos que vamos manipular
+        const grid = document.getElementById('productGrid');
+        const badge = document.getElementById('apiBadge');
+        const badgeText = document.getElementById('badgeText');
+        const resultsDiv = document.getElementById('resultsCount');
+        const countSpan = document.getElementById('productCount');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const favoriteForm = document.getElementById('favoriteForm');
+        const favNome = document.getElementById('favNome');
+        const favAno = document.getElementById('favAno');
+        const statusMsg = document.getElementById('statusMsg');
+        const charactersPanel = document.getElementById('charactersPanel');
+        const charactersTitle = document.getElementById('charactersTitle');
+        const charactersList = document.getElementById('charactersList');
 
 
-    /**
-     * Gera o HTML de um card de produto.
-     *
-     * Recebe o objeto product que veio do JSON da API
-     * e retorna uma string de HTML.
-     *
-     * Estrutura do objeto (igual ao Java Record):
-     *   { id, name, description, price, category, imageUrl }
-     */
-    function createCard(product) {
-      const card = document.createElement('div');
-      card.className = 'product-card';
-
-      card.innerHTML = `
-        <img
-          class="card-img"
-          src="${product.imageUrl}"
-          alt="${product.name}"
-          loading="lazy"
-        />
-        <div class="card-body">
-          <span class="card-category">${product.category}</span>
-          <h2 class="card-name">${product.name}</h2>
-          <p class="card-description">${product.description}</p>
-          <div class="card-footer">
-            <span class="card-id">#${product.id}</span>
-            <span class="card-price">${formatPrice(product.price)}</span>
-          </div>
-        </div>
-      `;
-
-      return card;
-    }
-
-
-    /**
-     * Busca os produtos na API e renderiza os cards.
-     *
-     * fetch() retorna uma Promise — é a API moderna do browser
-     * para fazer requisições HTTP sem precisar de jQuery ou Axios.
-     *
-     * async/await torna o código mais legível do que .then()/.catch().
-     */
-    async function fetchProducts() {
-
-      // Garante que os skeletons estejam visíveis enquanto carrega
-      // (caso o usuário clique em "tentar novamente")
-      grid.innerHTML = `
-        <div class="skeleton-card">
-          <div class="skeleton-img"></div>
-          <div class="skeleton-body">
-            <div class="skeleton-line short"></div>
-            <div class="skeleton-line medium"></div>
-            <div class="skeleton-line"></div>
-          </div>
-        </div>
-        <div class="skeleton-card">
-          <div class="skeleton-img"></div>
-          <div class="skeleton-body">
-            <div class="skeleton-line short"></div>
-            <div class="skeleton-line medium"></div>
-            <div class="skeleton-line"></div>
-          </div>
-        </div>
-        <div class="skeleton-card">
-          <div class="skeleton-img"></div>
-          <div class="skeleton-body">
-            <div class="skeleton-line short"></div>
-            <div class="skeleton-line medium"></div>
-            <div class="skeleton-line"></div>
-          </div>
-        </div>
-      `;
-
-      try {
-        // ── 1. FAZ A REQUISIÇÃO ──────────────────────────────────
-        // fetch() retorna uma Promise<Response>.
-        // O segundo argumento é opcional — aqui explicitamos o método
-        // GET e o header Accept para fins didáticos.
-        const response = await fetch(API_URL, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-
-        // ── 2. VERIFICA O STATUS HTTP ────────────────────────────
-        // response.ok é true quando o status está entre 200–299.
-        // Se a API retornar 404, 500, etc, lançamos um erro manualmente.
-        if (!response.ok) {
-          throw new Error(`Status HTTP: ${response.status}`);
+        function getAno(isoDate) {
+            if (!isoDate) return '---';
+            const date = new Date(isoDate);
+            return Number.isNaN(date.getTime()) ? '---' : date.getFullYear();
         }
 
-        // ── 3. CONVERTE PARA JSON ────────────────────────────────
-        // response.json() lê o body da resposta e converte para objeto JS.
-        // Isso também é assíncrono, por isso outro await.
-        const products = await response.json();
 
-        // ── 4. LIMPA OS SKELETONS ────────────────────────────────
-        grid.innerHTML = '';
+        function createCard(movie) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
 
-        // ── 5. RENDERIZA OS CARDS ────────────────────────────────
-        products.forEach((product, index) => {
-          const card = createCard(product);
+            card.innerHTML = `
+            <div class="card-body">
+                        <span class="card-category">Filme</span>
+                        <h2 class="card-name">${movie.nome}</h2>
+                        <p class="card-description">Ano de lançamento: ${getAno(movie.anoLancamento)}</p>
+            <div class="card-footer">
+                            <span class="card-id">#${movie.id}</span>
+                            <span class="card-price">${getAno(movie.anoLancamento)}</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-secondary" type="button" data-action="characters" data-name="${movie.nome}">
+                                Buscar personagens
+                            </button>
+            </div>
+            </div>
+      `;
 
-          grid.appendChild(card);
+            return card;
+        }
 
-          // Animação de entrada staggered:
-          // cada card aparece com um pequeno delay a mais que o anterior.
-          setTimeout(() => {
-            card.classList.add('visible');
-          }, index * 80);
-        });
 
-        // ── 6. ATUALIZA O CONTADOR E O BADGE ────────────────────
-        countSpan.textContent = products.length;
-        resultsDiv.style.display = 'block';
+        function setStatus(message, isError = false) {
+            statusMsg.textContent = message;
+            statusMsg.style.color = isError ? 'var(--danger)' : 'var(--text-muted)';
+        }
 
-        badge.className = 'api-badge ok';
-        badgeText.textContent = 'API conectada';
 
-      } catch (error) {
-        // ── TRATAMENTO DE ERRO ───────────────────────────────────
-        // Chegamos aqui se:
-        //   a) A API não está rodando (Connection refused)
-        //   b) A API retornou um status de erro (4xx, 5xx)
-        //   c) A resposta não é um JSON válido
+        async function fetchMovies() {
 
-        console.error('Erro ao buscar produtos:', error);
+            // Garante que os skeletons estejam visíveis enquanto carrega
+            // (caso o usuário clique em "tentar novamente")
+            grid.innerHTML = `
+        <div class="skeleton-card">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line medium"></div>
+            <div class="skeleton-line"></div>
+          </div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line medium"></div>
+            <div class="skeleton-line"></div>
+          </div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line medium"></div>
+            <div class="skeleton-line"></div>
+          </div>
+        </div>
+      `;
 
-        // Atualiza o badge para o estado de erro
-        badge.className = 'api-badge err';
-        badgeText.textContent = 'API offline';
+            try {
+                // ── 1. FAZ A REQUISIÇÃO ──────────────────────────────────
+                // fetch() retorna uma Promise<Response>.
+                // O segundo argumento é opcional — aqui explicitamos o método
+                // GET e o header Accept para fins didáticos.
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
 
-        // Substitui o grid pelo estado de erro
-        grid.innerHTML = `
+                // ── 2. VERIFICA O STATUS HTTP ────────────────────────────
+                // response.ok é true quando o status está entre 200–299.
+                // Se a API retornar 404, 500, etc, lançamos um erro manualmente.
+                if (!response.ok) {
+                    throw new Error(`Status HTTP: ${response.status}`);
+                }
+
+                // ── 3. CONVERTE PARA JSON ────────────────────────────────
+                // response.json() lê o body da resposta e converte para objeto JS.
+                // Isso também é assíncrono, por isso outro await.
+                const moviesResponse = await response.json();
+                const movies = Array.isArray(moviesResponse)
+                    ? moviesResponse
+                    : (moviesResponse.value || []);
+
+                // ── 4. LIMPA OS SKELETONS ────────────────────────────────
+                grid.innerHTML = '';
+
+                // ── 5. RENDERIZA OS CARDS ────────────────────────────────
+                movies.forEach((movie, index) => {
+                    const card = createCard(movie);
+
+                    grid.appendChild(card);
+
+                    // Animação de entrada staggered:
+                    // cada card aparece com um pequeno delay a mais que o anterior.
+                    setTimeout(() => {
+                        card.classList.add('visible');
+                    }, index * 80);
+                });
+
+                // ── 6. ATUALIZA O CONTADOR E O BADGE ────────────────────
+                countSpan.textContent = movies.length;
+                resultsDiv.style.display = 'block';
+                setStatus('Filmes carregados com sucesso.');
+
+                badge.className = 'api-badge ok';
+                badgeText.textContent = 'API conectada';
+
+            } catch (error) {
+                // ── TRATAMENTO DE ERRO ───────────────────────────────────
+                // Chegamos aqui se:
+                //   a) A API não está rodando (Connection refused)
+                //   b) A API retornou um status de erro (4xx, 5xx)
+                //   c) A resposta não é um JSON válido
+
+                console.error('Erro ao buscar filmes:', error);
+
+                // Atualiza o badge para o estado de erro
+                badge.className = 'api-badge err';
+                badgeText.textContent = 'API offline';
+
+                // Substitui o grid pelo estado de erro
+                grid.innerHTML = `
           <div class="error-state">
             <div class="error-icon">⚡</div>
             <h2>Não foi possível carregar</h2>
@@ -634,20 +784,107 @@
               Verifique se o servidor Spring Boot está rodando em
               <code>localhost:8080</code> e tente novamente.
             </p>
-            <button class="btn-retry" onclick="fetchProducts()">
+            <button class="btn-retry" onclick="fetchMovies()">
               Tentar novamente
             </button>
           </div>
         `;
-      }
-    }
+                setStatus('Falha no GET /api/movie.', true);
+            }
+        }
 
 
-    // ── INICIALIZAÇÃO ────────────────────────────────────────────
-    // Chamamos fetchProducts() assim que a página termina de carregar.
-    fetchProducts();
+        async function saveFavorite(event) {
+            event.preventDefault();
 
-  </script>
+            const payload = {
+                nome: favNome.value.trim(),
+                anoLancamento: favAno.value
+            };
+
+            if (!payload.nome || !payload.anoLancamento) {
+                setStatus('Preencha nome e data para salvar o favorito.', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Status HTTP: ${response.status}`);
+                }
+
+                favoriteForm.reset();
+                setStatus('Favorito salvo com sucesso via POST /api/movie.');
+                fetchMovies();
+            } catch (error) {
+                console.error('Erro ao salvar favorito:', error);
+                setStatus('Falha ao salvar favorito no POST /api/movie.', true);
+            }
+        }
+
+
+        async function fetchCharacters(movieName) {
+            charactersPanel.style.display = 'block';
+            charactersTitle.textContent = `Personagens de ${movieName}`;
+            charactersList.innerHTML = '<li>Carregando personagens...</li>';
+
+            try {
+                const response = await fetch(`${CHARACTER_API}?q=${encodeURIComponent(movieName)}&embed=cast`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Status HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const cast = (data._embedded && Array.isArray(data._embedded.cast))
+                    ? data._embedded.cast
+                    : [];
+
+                if (!cast.length) {
+                    charactersList.innerHTML = '<li>Nenhum personagem encontrado.</li>';
+                    return;
+                }
+
+                charactersList.innerHTML = cast
+                    .slice(0, 12)
+                    .map((item) => `<li>${item.character ? item.character.name : 'Personagem sem nome'}</li>`)
+                    .join('');
+            } catch (error) {
+                console.error('Erro ao buscar personagens:', error);
+                charactersList.innerHTML = '<li>Não foi possível buscar personagens agora.</li>';
+            }
+        }
+
+
+        reloadBtn.addEventListener('click', fetchMovies);
+        favoriteForm.addEventListener('submit', saveFavorite);
+
+        grid.addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-action="characters"]');
+            if (!button) return;
+            fetchCharacters(button.dataset.name || 'Filme');
+        });
+
+
+        // ── INICIALIZAÇÃO ────────────────────────────────────────────
+        // Chamamos fetchMovies() assim que a página termina de carregar.
+        fetchMovies();
+
+    </script>
 
 </body>
+
 </html>
